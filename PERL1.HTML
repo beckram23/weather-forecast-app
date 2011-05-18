@@ -1,0 +1,76 @@
+<HTML>
+
+<HEAD>
+	<TITLE>
+	Weather Application
+	</TITLE>
+	<link rel="stylesheet" href="style.css" type="text/css" media="all" /> 
+	<SCRIPT TYPE = "text/javascript" LANGUAGE = "JavaScript">
+	function validateZip(form)
+	{
+	var zip = form.zip.value;
+	var checkZip = /^[0-9]{5,}$/;
+	var error;
+	if(!checkZip.test(zip))
+		{
+		error = "Enter a valid zip code (minimum 5 digits).";
+		window.alert(error);
+		return false;
+		}
+	else 
+		{
+		form.submit();
+		//alert("Submitted your details successfully.");
+		//form('get').action = "/cgi-bin/create.pl";
+		//return true;
+		}
+	}
+	function validateLocation(form)
+	{
+	var location = form.location.value;
+	var checkLocation = /^([a-zA-Z])+.*(\,{1})(\s{1})([a-zA-Z]){2}$/;
+	var error;
+	if(!checkLocation.test(location))
+		{
+		error = "Please enter the search value as CITY, STATE. eg: San Francisco, Ca";
+		window.alert(error);
+		return false;
+		}
+	else 
+		{
+		form.submit();
+		//alert("Submitted your details successfully.");
+		//form('get').action = "/cgi-bin/create.pl";
+		//return true;
+		}
+	}
+	</SCRIPT>
+</HEAD>
+
+<BODY>
+	<div class = "leftalign" >
+	<A HREF = "createAccount.html"> Establish your account </A>
+	<br/>
+	<A HREF = "login.html"> Login </A>
+	</div>
+	<br/>
+	<h2> Quick peek </h2>
+	<FORM METHOD = "post" ACTION = "/cgi-bin/quickpeek.pl">
+		<br/>
+		<LABEL> Zip Code </LABEL>
+		<INPUT TYPE = "text" NAME = "zip" size = 50px class = "text" />
+		<br/>
+		<br/>
+		<INPUT TYPE = "submit" NAME = "zipCode" VALUE = "Weather Right Now" STYLE = "MARGIN-LEFT: 45em" ONCLICK = "validateZip(this.form);return false;" class = "submit" />
+	</FORM>
+	<FORM METHOD = "post" ACTION = "/cgi-bin/getzip.pl">
+		<br/>
+		<LABEL> Get zip code (eg: San Francisco, Ca) </LABEL>
+		<INPUT TYPE = "text" NAME = "location" size = 50px class = "text" />
+		<br/>
+		<br/>
+		<INPUT TYPE = "submit" NAME = "getZipCode" VALUE = "Get Zip Code" STYLE = "MARGIN-LEFT: 45em" ONCLICK = "validateLocation(this.form);return false;" class = "submit" />
+	</FORM>
+</BODY>
+
+</HTML>

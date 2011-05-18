@@ -1,0 +1,119 @@
+<HTML>
+
+<HEAD>
+	<TITLE>
+		Create Account
+	</TITLE>
+	<link rel="stylesheet" href="style.css" type="text/css" media="all" /> 
+	<SCRIPT TYPE = "text/javascript" LANGUAGE = "JavaScript">
+	function validate(form)
+	{
+		var fName = form.fName.value;
+		var lName = form.lName.value;
+		var city = form.city.value;
+		var state = form.state.value;
+		var zip = form.zip.value;
+		var loginName = form.loginName.value;
+		var passw = form.passw.value;
+		var confirmPassw = form.confirmPassw.value;
+		
+		var checkName = /^([a-zA-Z]{2,}(\s)?).*$/;
+		var checkName = /^([a-zA-Z][0-9]){2,}$/;
+		var checkZip = /^[0-9]{5,}$/;
+		var errors = [];
+		
+		if(!checkName.test(fName))
+			{
+			errors[errors.length] = "Enter a valid first name (minimum 2 characters).";
+			}
+		if(!checkName.test(lName))
+			{
+			errors[errors.length] = "Enter a valid last name (minimum 2 characters).";
+			}
+		if(!checkName.test(city))
+			{
+			errors[errors.length] = "Enter a valid name for city (minimum 2 characters).";
+			}
+		if(!checkName.test(state))
+			{
+			errors[errors.length] = "Enter a valid name for state (Minimum 2 characters).";
+			}
+		if(!checkZip.test(zip))
+			{
+			errors[errors.length] = "Enter a valid zip code (minimum 5 digits).";
+			}
+		if(!checkLoginName.test(loginName))
+			{
+			errors[errors.length] = "Enter a valid last name (minimum 2 characters).";
+			}
+		if(confirmPassw == '' || confirmPassw == ' ' || passw == '' || passw == ' ')
+			{
+			errors[errors.length] = "Enter a value for password and confirm password.";
+			}
+		if(confirmPassw!=passw)
+			{
+			errors[errors.length] = "Password doesn't match.";
+			}
+		if(errors.length > 0)
+			{
+			var msg, count;
+			for(var i=0; i<errors.length; i++)
+				{
+				count = i + 1;
+				msg += "\n" + count + ". " + errors[i];
+				}
+			window.alert(msg);
+			return false;
+			}
+		else 
+			{
+			form.submit();
+			alert("Submitted your details successfully.");
+			//form('get').action = "/cgi-bin/create.pl";
+			//return true;
+			}
+	}
+	</SCRIPT>
+</HEAD>
+
+<BODY>
+	<H2> Establish your account </H2>
+	<FORM METHOD = "post" ACTION = "/cgi-bin/createuimysql.pl">
+		<br/>
+			<LABEL> First Name </LABEL>
+			<INPUT TYPE = "text" NAME = "fName" size = 50px class = "text" />
+		<br/>
+			<LABEL> Middle Name </LABEL>
+			<INPUT TYPE = "text" NAME = "mName" size = 50px class = "text" />
+		<br/>
+			<LABEL> Last Name </LABEL>
+			<INPUT TYPE = "text" NAME = "lName" size = 50px class = "text" />
+		<br/>
+			<LABEL> Address </LABEL>
+			<INPUT TYPE = "text" NAME = "address" size = 50px class = "text" />
+		<br/>
+			<LABEL> City </LABEL>
+			<INPUT TYPE = "text" NAME = "city" size = 50px class = "text" />
+		<br/>
+			<LABEL> State </LABEL>
+			<INPUT TYPE = "text" NAME = "state" size = 50px class = "text" />
+		<br/>
+			<LABEL> Zip Code </LABEL>
+			<INPUT TYPE = "text" NAME = "zip" size = 50px class = "text" />
+		<br/>
+			<LABEL> Login Name </LABEL>
+			<INPUT TYPE = "text" NAME = "loginName" size = 50px class = "text" />
+		<br/>
+			<LABEL> Password </LABEL>
+			<INPUT TYPE = "password" NAME = "passw" size = 50px class = "text" />
+		<br/>
+			<LABEL> Confirm Password </LABEL>
+			<INPUT TYPE = "password" NAME = "confirmPassw" size = 50px class = "text" />
+		<br/>
+		<br/>
+		<INPUT TYPE = "submit" NAME = "create" VALUE = "Create Account" STYLE = "MARGIN-LEFT: 45em" ONCLICK = "validate(this.form);return false;" class = "submit" />
+	</FORM>
+</BODY>
+
+</HTML>
+	

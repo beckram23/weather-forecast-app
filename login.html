@@ -1,0 +1,25 @@
+<HTML>
+
+<HEAD>
+	<TITLE>
+		Login
+	</TITLE>
+	<link rel="stylesheet" href="style.css" type="text/css" media="all" /> 
+</HEAD>
+
+<BODY>
+	<H2> Enter your login details </H2>
+	<FORM METHOD = "post" ACTION = "/cgi-bin/loginuimysql.pl">
+		<br/>
+			<LABEL> Login Name </LABEL>
+			<INPUT TYPE = "text" NAME = "loginName" size = 50px class = "text" />
+		<br/>
+			<LABEL> Password </LABEL>
+			<INPUT TYPE = "password" NAME = "passw" size = 50px class = "text" />
+		<br/>
+		<br/>
+		<INPUT TYPE = "submit" NAME = "login" VALUE = "Login" STYLE = "MARGIN-LEFT: 45em" ONCLICK = "this.form.submit()" class = "submit" />
+	</FORM>
+</BODY>
+
+</HTML>

@@ -1,0 +1,98 @@
+/* 
+html5doctor.com Reset Stylesheet
+v1.6
+Last Updated: 2010-08-18
+Author: Richard Clark - http://richclarkdesign.com 
+Twitter: @rich_clark
+Modified by: Ramprasad
+*/
+
+html, body, tr, th, td
+{
+    margin:0;
+    padding:0;
+    border:0;
+    outline:0;
+    font-size:100%;
+    vertical-align:baseline;
+    background:transparent;
+}
+
+a {
+    margin:0;
+    padding:0;
+    font-size:100%;
+    vertical-align:baseline;
+    background:transparent;
+}
+
+
+table {
+    border-collapse:collapse;
+    border-spacing:0;
+	
+}
+
+
+/* my styles */
+
+a {color:#666;text-decoration:none;padding:2px 1px;}
+a:hover {color:black;background:#FF0000}
+
+a:visited {}
+
+body {
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  background-color:#FFFFFF;
+}
+
+input.text {
+    border-color:#FFFFFF #FFFFFF #FF0000;
+    border-style:solid solid dashed;
+    border-width:1px;
+    color:#666666;
+    font-family:Helvetica,sans-serif,arial;
+    width:300px;
+	font-size:1em;
+	overflow:hidden;
+	vertical-align:baseline;
+	font-weight:bold;
+	outline: none;
+	MARGIN-RIGHT: 50px;
+}
+
+input.submit {
+  background-color : #FF0000;
+  color : #000000;
+  font : bold 14px/14px verdana, geneva, helvetica;
+  border : 2px solid #ccc;
+  border-color:#FFFFFF #FFFFFF #000000;
+  border-style:solid solid dashed;
+  border-width:1px;
+}
+
+h2 {
+  font-size: 21px;
+  line-height: 25px;
+  font-weight:normal;
+  text-align:center;
+background:transparent;
+}
+
+LABEL 
+{	
+FLOAT: LEFT; 
+WIDTH: 10em;
+}
+
+form {
+text-align:left;
+}
+
+div.leftalign {
+text-align:left;
+}
+
+div.centeralign {
+text-align:center;
+}
