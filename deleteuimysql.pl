@@ -15,11 +15,11 @@ my $user = "";
 my $pw = "";
 my $connect = "";
 
-$host = "Ramprasad-PC";
+$host = "your system name";
 $databasename = "perluserinfo";
 $tablename = "perlsample1";
 $user = "root";
-$pw = "zzizou5";
+$pw = "your MySQL password";
 
 my $loginName="";
 my $passw="";
