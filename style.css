@@ -15,7 +15,8 @@ html, body, tr, th, td
     outline:0;
     font-size:100%;
     vertical-align:baseline;
-    background:transparent;
+	background: -webkit-gradient(linear,
+                left top, left bottom, from(#FFFFFF), to(#666666));
 }
 
 a {
@@ -36,7 +37,7 @@ table {
 
 /* my styles */
 
-a {color:#666;text-decoration:none;padding:2px 1px;}
+a {color:#FF0000;text-decoration:none;padding:2px 1px;}
 a:hover {color:black;background:#FF0000}
 
 a:visited {}
@@ -77,6 +78,17 @@ h2 {
   font-weight:normal;
   text-align:center;
 background:transparent;
+}
+
+div.zipcodes {
+	font: bold 330%/100% "Lucida Grande";
+  position: relative;
+  color: #464646;
+  background: url(gradient.png) repeat-x;
+  position: absolute;
+  display: block;
+  width: 100%;
+  height: 31px;
 }
 
 LABEL 
