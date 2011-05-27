@@ -202,12 +202,14 @@ for ( $i=0; $i<$pagecount; $i++)
 	}
 #print "$content";
 
+print "<div class = \"zipcodes\">";
 print "<FORM>";
 for ( $i=0; $i<$j; $i++)
 	{
-	print "<INPUT TYPE = \"radio\" NAME = \"radio\" VALUE = \"$zipcodes[$i]\" ONCLICK = \"setZip(this.form); return true;\">$zipcodes[$i]</INPUT> $zipcity[$i] $zipcounty[$i] <\/br>";
+	print "<INPUT TYPE = \"radio\" NAME = \"radio\" VALUE = \"$zipcodes[$i]\" ONCLICK = \"setZip(this.form); return true;\">$zipcodes[$i]</INPUT> , <b>CITY:<\/b> $zipcity[$i], <b>COUNTY:<\/b> $zipcounty[$i]<\/br>";
 	}
 
+print "<\/div>";
 print "</FORM>";
 print "</body>";
 print "</html>";
