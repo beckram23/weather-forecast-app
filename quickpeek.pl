@@ -1,6 +1,10 @@
 #!C:\strawberry\perl\bin\perl.exe -w
 
 use CGI qw(:standard);
+use Flickr::API;
+use Flickr::API::Request;
+use XML::Parser::Lite::Tree::XPath;
+use Data::Dumper;
 use strict;
 use warnings;
 require LWP::UserAgent;
@@ -18,6 +22,16 @@ my $response="";
 my $content="";
 my $ua="";
 my $conditionRightNow="";
+my $location="";
+my $state="";
+my $city="";
+my $time="";
+my $api="";
+my $flickrrequest="";
+my $flickrresponse="";
+my $zipcodes="";
+my $latitude="";
+my $longitude="";
 
 # Read in text
 print "Content-type: text/html\n\n";
@@ -99,18 +113,88 @@ $url="http://www.weather.com/weather/today/$zip";
 $response = $ua->get($url);
 $content = $response->content();
 $content =~ s/[\t\n]*//g;
-#print "$content";
+
+#print "$flickr";
+print "Conditions right now - <\/br>";
+if ( $content =~ /<h1 id=\"twc_loc_head\">(.*?)\(/ )
+	{
+	$location = $1;
+	print "$location $zip : ";
+	}
+if( $location =~ /(.*?), (.*)/ )
+	{
+	$city = $1;
+	$state = $2;
+	}
+
+$ua = LWP::UserAgent->new;
+$ua->timeout(120);
+$url="http://www.worldtimeserver.com/current_time_in_US-$state.aspx";
+$url =~ s/ //g;
+#print "<h2>$url</h2>";
+$response = $ua->get($url);
+$time = $response->content();
+$time =~ s/[\t\n]*//g;
+
+#$location = s/ /\+/g;
+$ua = LWP::UserAgent->new;
+$ua->timeout(120);
+$url="http://www.zip-codes.com/zip-code/$zip/zip-code-$zip.asp";
+#print "<h2>$url</h2>";
+$response = $ua->get($url);
+$zipcodes = $response->content();
+$zipcodes =~ s/[\t\n]*//g;
+
+if ( $zipcodes =~ /Latitude:<\/a><\/td><td id.*?>(.*?)<.*?Longitude:<\/a><\/td><td id.*?>(.*?)</ )
+	{
+	$latitude = $1;
+	$longitude = $2;
+	#print "$1, $2";
+	}
+
+$api = new Flickr::API({'key' => '787989c648d30298ca3a893b5122c35d'});
+
+$flickrresponse = $api->execute_method('flickr.photos.search', {
+                'lat' => $latitude,'lon'   => $longitude,'radius' => '20','radius_units' => 'km'
+        });
+
+my $debug = 1;
+if ($debug)
+{
+	#print "Success: $flickrresponse->{success}\n";
+	#print "Error code: $flickrresponse->{error_code}\n";
+	#print Dumper ($flickrresponse);
+}
+
+my $xpath = new XML::Parser::Lite::Tree::XPath($flickrresponse->{tree});
+my @photo = $xpath->select_nodes('/photos');
+
+my $photosize = @photo;
+print "$photosize";
+#print Dumper (\@photo);
+print Dumper ($photo[0]);
+
+foreach (@photo)
+	{
+	#print "$_->{attributes}->{farm}, ";
+	}
+
+#print "$time<\/br>";
+if ( $time =~ /<div id=\"analog-digital\">.*?>(.*?)<.*?<strong>(.*?)</ )
+	{
+	print "Time and Date $1, $2 -- ";
+	}
 while ( $content =~ /(<!-- Column 1 --><td class=\"twc-col-2 twc-forecast-when\">Tonight<\/td><!-- Column 2 -->.*)<\/table>/g )
 	{
 	$content = "$1";
 	#print $content;
 	}
 
-print "Conditions right now: ";
 if ( $content =~ /<\/tr><tr><td class=\"twc-col-1\">(.*?)<\/td>/ )
 	{
 	$conditionRightNow = $1;
 	#print "$conditionRightNow";
+	print "<b>";
 	if ($conditionRightNow =~ m/showers/i)
 		{
 		print "Light showers. Less than 50% precipitation.<\/br>";
@@ -123,8 +207,11 @@ if ( $content =~ /<\/tr><tr><td class=\"twc-col-1\">(.*?)<\/td>/ )
 		{
 		print "No rainfall.<\/br>";
 		}
+	print "<\/b>";
 	}
 
+$ua = LWP::UserAgent->new;
+$ua->timeout(120);
 $url="http://www.weather.com/weather/hourbyhour/graph/$zip";
 #print "<h2>$url</h2>";
 $response = $ua->get($url);
@@ -140,6 +227,8 @@ while ( $content =~ /(<div class="hbhWxHour" id="hbhWxHour0">.*)<div class="hbhW
 	$content = "$1";
 	#print $content;
 	}
+
+
 
 print "<\/br><h2>Precipitation forecast for the next 6 hours<\/h2><\/br>";
 
