@@ -1,106 +1,394 @@
-/* 
-html5doctor.com Reset Stylesheet
-v1.6
-Last Updated: 2010-08-18
-Author: Richard Clark - http://richclarkdesign.com 
-Twitter: @rich_clark
-Modified by: Ramprasad
-*/
+#!C:\strawberry\perl\bin\perl.exe -w
 
-html, body, tr, th, td
-{
-    margin:0;
-    padding:0;
-    border:0;
-    outline:0;
-    font-size:100%;
-    vertical-align:baseline;
-	background: -webkit-gradient(linear,
-                left top, left bottom, from(#FFFFFF), to(#666666));
-}
+use CGI qw(:standard);
+use Flickr::API;
+use Flickr::API::Request;
+use XML::Parser::Lite::Tree::XPath;
+use Data::Dumper;
+use warnings;
+require LWP::UserAgent;
 
-a {
-    margin:0;
-    padding:0;
-    font-size:100%;
-    vertical-align:baseline;
-    background:transparent;
-}
+my $zip="";
+my $buffer="";
+my @pairs;
+my $pair="";
+my $name="";
+my $value="";
+my %FORM;
 
+my $url="";
+my $response="";
+my $content="";
+my $ua="";
+my $conditionRightNow="";
+my $location="";
+my $state="";
+my $city="";
+my $time="";
+my $api="";
+my $flickrrequest="";
+my $flickrresponse="";
+my $zipcodes="";
+my $latitude="";
+my $longitude="";
 
-table {
-    border-collapse:collapse;
-    border-spacing:0;
+# Read in text
+print "Content-type: text/html\n\n";
+
+$ENV{'REQUEST_METHOD'} =~ tr/a-z/A-Z/;
+if ($ENV{'REQUEST_METHOD'} eq "POST")
+	{
+        read(STDIN, $buffer, $ENV{'CONTENT_LENGTH'});
+    }else {
+	$buffer = $ENV{'QUERY_STRING'};
+    }
 	
+@pairs = split(/&/, $buffer);
+foreach $pair (@pairs)
+    {
+	($name, $value) = split(/=/, $pair);
+	$value =~ tr/+/ /;
+	$value =~ s/%(..)/pack("C", hex($1))/eg;
+	$FORM{$name} = $value;
+    }
+$zip=$FORM{zip};
+
+print "<!DOCTYPE html><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" name=\"viewport\" content=\"initial-scale=1.0, user-scalable=no\"/>";
+print "<html><head>";
+print "<link rel=\"stylesheet\" href=\"..\\style.css\" type=\"text/css\" media=\"all\" />";
+print "<style type=\"text/css\">
+h4 {text-align:center;}
+    #map_canvas { text-align: center; margin:0px auto;
+	text-align:left;
+	padding:15px;}
+<\/style>";
+print "<base href=\"http://127.0.0.1/\" />";
+print "	<script type=\"text/javascript\" src=\"http://maps.google.com/maps/api/js?sensor=false\" LANGUAGE = \"JavaScript\">
+</script><SCRIPT TYPE = \"text/javascript\" LANGUAGE = \"JavaScript\">
+	function validateZip(form)
+	{
+	var zip = form.zip.value;
+	var checkZip = /^[0-9]{5,}\$/;
+	var error;
+	if(!checkZip.test(zip))
+		{
+		error = \"Enter a valid zip code (minimum 5 digits).\";
+		window.alert(error);
+		return false;
+		}
+	else 
+		{
+		form.submit();
+		}
+	}
+	function validateLocation(form)
+	{
+	var location = form.location.value;
+	var checkLocation = /^([a-zA-Z])+.*(\\,{1})(\\s{1})([a-zA-Z]){2}\$/;
+	var error;
+	if(!checkLocation.test(location))
+		{
+		error = \"Please enter the search value as CITY, STATE. eg: San Francisco, Ca\";
+		window.alert(error);
+		return false;
+		}
+	else 
+		{
+		form.submit();
+		}
+	}
+	function setZip(form)
+	{
+	var zip;
+	for ( var i=0; i < form.radio.length; i++)
+		{
+		if ( form.radio[i].checked)
+			{
+			zip = form.radio[i].value;
+			\/\/window.alert(zip);
+			document.form1.zip.value = zip;
+			}
+		}
+	}
+	
+  function mapsinitialize(lat, lon) {
+  \/\/window.alert(lat,lon);
+  var googlemap = document.getElementById(\"map_canvas\");
+    var latlng = new google.maps.LatLng(lat, lon);
+    var myOptions = {
+      zoom: 10,
+      center: latlng,
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+ googlemap.style.width = 300 + 'px';
+	 googlemap.style.height = 250 + 'px';
+	 
+	 var map = new google.maps.Map(googlemap,
+        myOptions);
+	if ( googlemap.style.display == 'none' ) {
+		googlemap.style.display = 'block';
+		}
+	else {
+		googlemap.style.display = 'none';
+		}
+  }
+  
+  function enlargeimage( name, source) {
+	var enlargedimage = document.getElementById(\"enlargedimage\");
+	var t1 = \/\_s\/;
+	var newsource = source.replace(t1,\"\");
+	var img = \"<img src=\\\"\"+newsource+\"\\\" \/>\";
+	\/\/window.alert(newsource);
+	if ( enlargedimage.style.display == 'none' ) {
+		enlargedimage.innerHTML = img;
+		enlargedimage.style.display = 'block';
+		}
+	else {
+		enlargedimage.style.display = 'none';
+		}
+  }
+  
+  function displayflickrimages() {
+  var images = document.getElementById(\"flickrimages\");
+  if ( images.style.display == 'none' ) {
+		images.style.display = 'block';
+		}
+	else {
+		images.style.display = 'none';
+		enlargedimage.style.display = 'none';
+		}
+  }
+	</SCRIPT>
+</head><body style = \"text-align:center\">";
+
+#print "$zip";
+$ua = LWP::UserAgent->new;
+$ua->timeout(120);
+$url="http://www.weather.com/weather/today/$zip";
+#print "<h2>$url</h2>";
+$response = $ua->get($url);
+$content = $response->content();
+$content =~ s/[\t\n]*//g;
+
+#print "$flickr";
+print "Conditions right now - <br/>";
+if ( $content =~ /<h1 id=\"twc_loc_head\">(.*?)\(/ )
+	{
+	$location = $1;
+	print "$location $zip : ";
+	}
+if( $location =~ /(.*?), (.*)/ )
+	{
+	$city = $1;
+	$state = $2;
+	}
+
+$ua = LWP::UserAgent->new;
+$ua->timeout(120);
+$url="http://www.worldtimeserver.com/current_time_in_US-$state.aspx";
+$url =~ s/ //g;
+#print "<h2>$url</h2>";
+$response = $ua->get($url);
+$time = $response->content();
+$time =~ s/[\t\n]*//g;
+
+my $mapsCity = $city;
+$mapsCity =~ s/ /\+/;
+$ua = LWP::UserAgent->new;
+$ua->timeout(120);
+$url="http://maps.google.com/maps/geo?q=$mapsCity+$state&output=json&oe=utf8&sensor=false&gl=us";
+#print "<h2>$url</h2>";
+$response = $ua->get($url);
+$zipcodes = $response->content();
+
+if ( $zipcodes =~ /"coordinates": \[(.*?),(.*?),/ )
+{
+	$latitude = $2;
+	$longitude = $1;
+	#print "$1, $2<\/br>";
 }
 
+$api = new Flickr::API({'key' => '787989c648d30298ca3a893b5122c35d', 'secret' => '420a5d55af8a4c00'});
 
-/* my styles */
-
-a {color:#FF0000;text-decoration:none;padding:2px 1px;}
-a:hover {color:black;background:#FF0000}
-
-a:visited {}
-
-body {
-  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-  background-color:#FFFFFF;
+$flickrresponse = $api->execute_method('flickr.photos.search', {
+                'lat' => $latitude,'lon'   => $longitude,'radius' => '10','radius_units' => 'km',
+       });
+ 
+my $debug = 1;
+if ($debug)
+{
+	#print "Success: $flickrresponse->{success}\n";
+	#print "Error code: $flickrresponse->{error_code}\n";
+	#print Dumper ($flickrresponse);
 }
 
-input.text {
-    border-color:#FFFFFF #FFFFFF #FF0000;
-    border-style:solid solid dashed;
-    border-width:1px;
-    color:#666666;
-    font-family:Helvetica,sans-serif,arial;
-    width:300px;
-	font-size:1em;
-	overflow:hidden;
-	vertical-align:baseline;
-	font-weight:bold;
-	outline: none;
-	MARGIN-RIGHT: 50px;
+my @photoarray;
+my $xpath = new XML::Parser::Lite::Tree::XPath($flickrresponse->{tree});
+my $photos=0;
+for($photos = 1; $photos <= 10; $photos++)
+{ 
+my $x_secret = "/photos/photo[$photos]/\@secret";
+my $x_id = "/photos/photo[$photos]/\@id";
+my $x_farm = "/photos/photo[$photos]/\@farm";
+my $x_server = "/photos/photo[$photos]/\@server";
+
+my $q_secret = $xpath->query($x_secret);
+my $q_id = $xpath->query($x_id);
+my $q_farm = $xpath->query($x_farm);
+my $q_server = $xpath->query($x_server);
+ 
+#my $photosize = @photo;
+#print "$photosize";
+
+my $photo_id =  Dumper ($q_id->{value});
+my $photo_secret =  Dumper ($q_secret->{value});
+my $photo_farm =  Dumper ($q_farm->{value});
+my $photo_server =  Dumper ($q_server->{value});
+
+if ( $photo_id =~ /\'value\' => \'(.*?)\'/ )
+{
+	$photo_id = $1;
+	}
+
+if ( $photo_secret =~ /\'value\' => \'(.*?)\'/ )
+{
+	$photo_secret = $1;
+	}
+	
+if ( $photo_farm =~ /\'value\' => \'(.*?)\'/ )
+{
+	$photo_farm = $1;
+	}
+	
+if ( $photo_server =~ /\'value\' => \'(.*?)\'/ )
+{
+	$photo_server = $1;
+	}
+else
+	{
+	$photos=0;
+	}
+last if ($photos==0);
+#print "<a href = \"http://farm$photo_farm.static.flickr.com/$photo_server/$photo_id\_$photo_secret\_z.jpg\"> $photos <\/a><\/br>";
+$photoarray[$photos] = "<img src=\"http://farm$photo_farm.static.flickr.com/$photo_server/$photo_id\_$photo_secret\_s.jpg\" name=\"image$photos\" onclick=\"enlargeimage( this.name, this.src)\"/>";
 }
 
-input.submit {
-  background-color : #FF0000;
-  color : #000000;
-  font : bold 14px/14px verdana, geneva, helvetica;
-  border : 2px solid #ccc;
-  border-color:#FFFFFF #FFFFFF #000000;
-  border-style:solid solid dashed;
-  border-width:1px;
-}
+my $photoslength = @photoarray;
+#print "$time<\/br>";
+if ( $time =~ /<div id=\"analog-digital\">.*?>(.*?)<.*?<strong>(.*?)</ )
+	{
+	print "Time and Date $1, $2 -- ";
+	}
+while ( $content =~ /(<!-- Column 1 --><td class=\"twc-col-2 twc-forecast-when\">Tonight<\/td><!-- Column 2 -->.*)<\/table>/g )
+	{
+	$content = "$1";
+	#print $content;
+	}
 
-h2 {
-  font-size: 21px;
-  line-height: 25px;
-  font-weight:normal;
-  text-align:center;
-background:transparent;
-}
+if ( $content =~ /<\/tr><tr><td class=\"twc-col-1\">(.*?)<\/td>/ )
+	{
+	$conditionRightNow = $1;
+	#print "$conditionRightNow";
+	print "<b>";
+	if ($conditionRightNow =~ m/showers/i)
+		{
+		print "Light showers. Less than 50% precipitation.<br/>";
+		}
+	elsif ($conditionRightNow =~ m/rain/i)
+		{
+		print "Raining. Precipitation above 50%.<br/>";
+		}
+	else
+		{
+		print "No rainfall.<br/>";
+		}
+	print "<\/b>";
+	}
+	
+$ua = LWP::UserAgent->new;
+$ua->timeout(120);
+$url="http://www.weather.com/weather/hourbyhour/graph/$zip";
+#print "<h2>$url</h2>";
+$response = $ua->get($url);
+$content = $response->content();
+$content =~ s/[\t\n]*//g;
 
-div.zipcodes {
-  position: relative;
-  color: #464646;
-  background: url(gradient.png) repeat-x;
-  position: absolute;
-}
+my $i=0;
+my $precipitation;
+my $average=0;
 
-LABEL 
-{	
-FLOAT: LEFT; 
-WIDTH: 10em;
-}
+while ( $content =~ /(<div class="hbhWxHour" id="hbhWxHour0">.*)<div class="hbhWxHour" id="hbhWxHour6">/g )
+	{
+	$content = "$1";
+	#print $content;
+	}
 
-form {
-text-align:left;
-}
 
-div.leftalign {
-text-align:left;
-}
 
-div.centeralign {
-text-align:center;
+print "<\/br><h2>Precipitation forecast for the next 6 hours<\/h2><\/br>";
+
+for ($i=0; $i<7; $i++)
+	{
+	if ( $content =~ /<div class="hbhWxHour" id="hbhWxHour$i">.*?<div class="hbhWxTime"><div>(.*?)<\/div>.*?Precip:<\/span><br>(.*?)<\/div>/ )
+		{
+		print "At $1 -> $2<\/br>";
+		$precipitation = $2;
+		$precipitation =~ s/%//g;
+		$average += $precipitation;
+		}
+	}
+
+$average = $average/6;	
+#print "mean $average";
+
+if ($average < 20)
+	{
+	print "Possible light showers.<br/><br/>";
+	}
+elsif ($average < 70 && $average >= 20)
+	{
+	print "Moderate to heavy showers.<br/><br/>";
+	}
+elsif ($average >= 70)
+	{
+	print "Heavy rain.<br><br/>";
+	}
+
+print "<h4 onclick=\"mapsinitialize($latitude, $longitude);return true;\"><u>Click here to see the location on Google Maps (Click again to hide!!!)<\/u><\/h4>";
+ print "<div id=\"map_canvas\" style=\"display: none\"><\/div>";	
+print "<h4 onclick=\"displayflickrimages(); return true;\"><u>Click here to see top 10 Flickr photos search result of the location (Click again to hide!!!)<\/u><\/h4>";
+ print "<div id = \"flickrimages\" style=\"display: none\">";
+
+for($photos = 1; $photos <= $photoslength; $photos++)
+{
+print "$photoarray[$photos] ";
 }
+print "<\/div>";
+  print "<div id = \"enlargedimage\" style=\"display: none\"><\/div>";
+  
+print "<div class = \"leftalign\" ><A HREF = \"createAccount.html\"> Establish your account </A>
+	<br/>
+	<A HREF = \"login.html\"> Login </A>
+	<\/div>
+	<br/>
+	<h2> Quick peek </h2>
+	<FORM METHOD = \"post\" ACTION = \"/cgi-bin/quickpeek.pl\" NAME = \"form1\">
+		<br/>
+		<LABEL> Zip Code </LABEL>
+		<INPUT TYPE = \"text\" NAME = \"zip\" size = 50px class = \"text\" />
+		<br/>
+		<br/>
+		<INPUT TYPE = \"submit\" NAME = \"zipCode\" VALUE = \"Weather Right Now\" STYLE = \"MARGIN-LEFT: 45em\" ONCLICK = \"validateZip(this.form);return false;\"  class = \"submit\"/>
+	</FORM>
+	<FORM METHOD = \"post\" ACTION = \"/cgi-bin/getzip.pl\">
+		<br/>
+		<LABEL> Get zip code (eg: San Francisco, Ca) </LABEL>
+		<INPUT TYPE = \"text\" NAME = \"location\" size = 50px class = \"text\" />
+		<br/>
+		<br/>
+		<INPUT TYPE = \"submit\" NAME = \"getZipCode\" VALUE = \"Get Zip Code\" STYLE = \"MARGIN-LEFT: 45em\" ONCLICK = \"validateLocation(this.form);return false;\" class = \"submit\" />
+	</FORM>";
+print "</body>";
+print "</html>";
+
+exit;
